@@ -1,4 +1,4 @@
-package Devel::AtRuntime;
+package B::Hooks::AtRuntime;
 
 use warnings;
 use strict;
@@ -11,6 +11,7 @@ our $VERSION = "1";
 XSLoader::load __PACKAGE__, $VERSION;
 
 our @EXPORT = "at_runtime";
+our @EXPORT_OK = qw/at_runtime lex_stuff/;
 
 my $Hooks;
 
@@ -19,7 +20,7 @@ sub clear {
     # through the optree it was compiled into. This means that if that
     # optree is ever freed, the glob will disappear along with @hooks
     # and anything closed over by the user's callbacks.
-    delete $Devel::AtRuntime::{run};
+    delete $B::Hooks::AtRuntime::{run};
     $Hooks = undef;
 }
 
@@ -27,16 +28,18 @@ sub at_runtime (&) {
     my ($cv) = @_;
 
     unless ($Hooks) {
+        # This must be a symref, so we get a fresh glob each time.
+        my $gv = do { no strict "refs"; \*{"run"} };
+
         # Close over an array of callbacks so we don't need to keep
         # stuffing text into the buffer.
         $Hooks = \my @hooks;
-
-        # This must be a symref, so we get a fresh glob each time.
-        my $gv = do { no strict "refs"; \*{"run"} };
         *$gv = subname "run", sub { $_->() for @hooks };
 
-        lex_stuff("Devel::AtRuntime::run();" .
-            "BEGIN{Devel::AtRuntime::clear()}");
+        # This must be all on one line, so we don't mess up perl's idea
+        # of the current line number.
+        lex_stuff("B::Hooks::AtRuntime::run();" .
+            "BEGIN{B::Hooks::AtRuntime::clear()}");
     }
 
     push @$Hooks, $cv;

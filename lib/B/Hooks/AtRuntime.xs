@@ -2,7 +2,7 @@
 #include <perl.h>
 #include <XSUB.h>
 
-MODULE = Devel::AtRuntime  PACKAGE = Devel::AtRuntime
+MODULE = B::Hooks::AtRuntime  PACKAGE = B::Hooks::AtRuntime
 
 void
 lex_stuff (s)

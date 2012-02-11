@@ -1,7 +1,7 @@
 use Module::Build;
 
 Module::Build->new(
-    module_name         => "Devel::AtRuntime",
+    module_name         => "B::Hooks::AtRuntime",
     license             => "bsd",
     configure_requires  => {
         "Module::Build"     => "0.38",
@@ -15,9 +15,9 @@ Module::Build->new(
     },
     meta_merge          => {
         resources => {
-            repository => "http://github.com/mauzo/Devel-AtRuntime",
-            bugtracker =>
-            "https://rt.cpan.org/Public/Dist/Display.html?Name=Devel-AtRuntime",
+            repository => "http://github.com/mauzo/B-Hooks-AtRuntime",
+            bugtracker => "https://rt.cpan.org/Public/Dist/" .
+                "Display.html?Name=B-Hooks-AtRuntime",
         },
     },
 )->create_build_script;
