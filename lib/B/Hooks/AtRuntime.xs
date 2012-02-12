@@ -61,3 +61,26 @@ count_BEGINs ()
         }
     OUTPUT:
         RETVAL
+
+bool
+compiling_string_eval ()
+    PREINIT:
+        I32 c = 0;
+        const PERL_CONTEXT *cx;
+        const CV *cxcv;
+    CODE:
+        RETVAL = 0;
+        while (cx = caller_cx(c++, NULL)) {
+            if (CxTYPE(cx) == CXt_SUB   &&
+                (cxcv = cx->blk_sub.cv) &&
+                CvSPECIAL(cxcv)         &&
+                strEQ(GvNAME(CvGV(cxcv)), "BEGIN")
+            ) {
+                cx = caller_cx(c + 1, NULL);
+                if (cx && CxREALEVAL(cx))
+                    RETVAL = 1;
+                break;
+            }
+        }
+    OUTPUT:
+        RETVAL

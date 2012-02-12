@@ -6,6 +6,7 @@ use strict;
 use XSLoader;
 use Exporter        "import";
 use Sub::Name       "subname";
+use Carp;
 
 our $VERSION = "1";
 XSLoader::load __PACKAGE__, $VERSION;
@@ -14,6 +15,38 @@ our @EXPORT = "at_runtime";
 our @EXPORT_OK = qw/at_runtime lex_stuff/;
 
 my @Hooks;
+my $Stuffer = "lexer";
+
+if (!defined &lex_stuff or $ENV{PERL_B_HOOKS_ATRUNTIME} eq "filter") {
+
+    $Stuffer = "filter";
+    require Filter::Util::Call;
+
+    # This isn't an exact replacement: it inserts the text at the start
+    # of the next line, rather than immediately after the current BEGIN.
+    #
+    # In theory I could use B::Hooks::Parser, which aims to emulate
+    # lex_stuff on older perls, but that uses a source filter to ensure
+    # PL_linebuf has some extra space in it (since it can't be
+    # reallocated without adjusting pointers we can't get to). This
+    # means BHP::setup needs to be called at least one source line
+    # before we want to insert any text (so the filter has a chance to
+    # run), which makes it precisely useless for our purposes :(.
+
+    no warnings "redefine";
+    *lex_stuff = subname "lex_stuff", sub {
+        my ($str) = @_;
+
+        compiling_string_eval() and croak 
+            "Can't stuff into a string eval";
+
+        Filter::Util::Call::filter_add(sub {
+            $_ = $str;
+            Filter::Util::Call::filter_del();
+            return 1;
+        });
+    };
+}
 
 sub replace_run {
     my ($new) = @_;
@@ -43,6 +76,9 @@ sub at_runtime (&) {
     my ($cv) = @_;
 
     local $" = "][";
+
+    compiling_string_eval() and $Stuffer eq "filter"
+        and croak "Can't use at_runtime from a string eval";
 
     my $depth = count_BEGINs();
     warn "DEPTH: [$depth]\n";
