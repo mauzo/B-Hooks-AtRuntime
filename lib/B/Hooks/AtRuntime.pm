@@ -8,18 +8,20 @@ use Exporter        "import";
 use Sub::Name       "subname";
 use Carp;
 
-our $VERSION = "1";
-XSLoader::load __PACKAGE__, $VERSION;
+BEGIN {
+    our $VERSION = "1";
+    XSLoader::load __PACKAGE__, $VERSION;
+}
 
 our @EXPORT = "at_runtime";
 our @EXPORT_OK = qw/at_runtime lex_stuff/;
 
-my @Hooks;
-my $Stuffer = "lexer";
+use constant USE_FILTER =>
+    defined $ENV{PERL_B_HOOKS_ATRUNTIME} 
+        ? $ENV{PERL_B_HOOKS_ATRUNTIME} eq "filter"
+        : not defined &lex_stuff;
 
-if (!defined &lex_stuff or $ENV{PERL_B_HOOKS_ATRUNTIME} eq "filter") {
-
-    $Stuffer = "filter";
+if (USE_FILTER) {
     require Filter::Util::Call;
 
     # This isn't an exact replacement: it inserts the text at the start
@@ -40,6 +42,11 @@ if (!defined &lex_stuff or $ENV{PERL_B_HOOKS_ATRUNTIME} eq "filter") {
         compiling_string_eval() and croak 
             "Can't stuff into a string eval";
 
+        if (defined(my $extra = remaining_text())) {
+            $extra =~ s/\n+\z//;
+            carp "Extra text '$extra' after call to lex_stuff";
+        }
+
         Filter::Util::Call::filter_add(sub {
             $_ = $str;
             Filter::Util::Call::filter_del();
@@ -47,6 +54,8 @@ if (!defined &lex_stuff or $ENV{PERL_B_HOOKS_ATRUNTIME} eq "filter") {
         });
     };
 }
+
+my @Hooks;
 
 sub replace_run {
     my ($new) = @_;
@@ -76,11 +85,12 @@ sub at_runtime (&) {
     my ($cv) = @_;
 
     local $" = "][";
+    
+    USE_FILTER and compiling_string_eval() and croak
+        "Can't use at_runtime from a string eval";
 
-    compiling_string_eval() and $Stuffer eq "filter"
-        and croak "Can't use at_runtime from a string eval";
-
-    my $depth = count_BEGINs();
+    my $depth = count_BEGINs()
+        or croak "You must call at_runtime at compile time";
     warn "DEPTH: [$depth]\n";
 
     my $hk;

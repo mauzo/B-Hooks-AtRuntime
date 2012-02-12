@@ -2,6 +2,10 @@
 #include <perl.h>
 #include <XSUB.h>
 
+#define NEED_PL_parser
+#define DPPP_PL_parser_NO_DUMMY
+#include "ppport.h"
+
 #ifndef caller_cx
 #define caller_cx(c, p)         MY_caller_cx(aTHX_ c, p)
 
@@ -37,11 +41,17 @@ MY_caller_cx(pTHX_ I32 count, const PERL_CONTEXT **dbcxp)
 
 MODULE = B::Hooks::AtRuntime  PACKAGE = B::Hooks::AtRuntime
 
+#ifdef lex_stuff_sv
+
 void
 lex_stuff (s)
         SV *s
     CODE:
+        if (!PL_parser)
+            Perl_croak(aTHX_ "Not currently compiling anything");
         lex_stuff_sv(s, 0);
+
+#endif
 
 UV
 count_BEGINs ()
@@ -79,6 +89,25 @@ compiling_string_eval ()
                 cx = caller_cx(c + 1, NULL);
                 if (cx && CxREALEVAL(cx))
                     RETVAL = 1;
+                break;
+            }
+        }
+    OUTPUT:
+        RETVAL
+
+SV *
+remaining_text ()
+    PREINIT:
+        char *c;
+    CODE:
+        RETVAL = &PL_sv_undef;
+        if (PL_parser) {
+            for (c = PL_bufptr; c < PL_bufend; c++) {
+                if (isSPACE(*c))    continue;
+                if (*c == '#')      break;
+                /* strictly it might be UTF8, but this is just an error so I
+                 * don't care. */
+                RETVAL = newSVpvn(c, PL_bufend - c);
                 break;
             }
         }
