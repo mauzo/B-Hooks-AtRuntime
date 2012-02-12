@@ -13,8 +13,9 @@ Module::Build->new(
         "Test::More"        => "0.65",
     },
     requires            => {
-        perl                => "5.012",
+        perl                => "5.006",
         "Sub::Name"         => "0.05",
+        "Filter::Util::Call"    => "0",
     },
 
     meta_merge          => {
