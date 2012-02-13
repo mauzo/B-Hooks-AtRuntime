@@ -11,9 +11,13 @@ Module::Build->new(
     },
     build_requires      => {
         "Test::More"        => "0.65",
+        "Test::Exception"   => "0.31",
+        "Test::Warn"        => "0.22",
+        "Test::Exports"     => "1",
     },
     requires            => {
-        perl                => "5.006",
+        perl                => "5.008001",
+        Exporter            => "5.57",
         "Sub::Name"         => "0.05",
         "Filter::Util::Call"    => "0",
     },
