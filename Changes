@@ -1,0 +1,6 @@
+Revision history for B::Hooks::AtRuntime.
+
+1       2012-02-13
+    Initial release.
+        - Uses lex_stuff_sv on 5.12.
+        - Filter-based substitute before that.
