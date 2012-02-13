@@ -105,9 +105,11 @@ unless (B::Hooks::AtRuntime::USE_FILTER) {
 {
     @::D = ();
     fakerequire "anonsub", q{
-        sub {
-            use t::D "anonsub";
-        };
+        {
+            my $dummy = sub {
+                use t::D "anonsub";
+            };
+        }
 
         sub anonsub_proto {
             sub {
