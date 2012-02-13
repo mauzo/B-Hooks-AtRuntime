@@ -59,8 +59,6 @@ my @Hooks;
 
 sub replace_run {
     my ($new) = @_;
-    local $" = "][";
-    warn "REPLACE [@{$new || []}]\n";
 
     # By deleting the stash entry we ensure the only ref to the glob is
     # through the optree it was compiled into. This means that if that
@@ -74,9 +72,6 @@ sub replace_run {
 
 sub clear {
     my ($depth) = @_;
-    local $" = "][";
-    no warnings "uninitialized";
-    warn "CLEAR: [$depth] [@{$Hooks[$depth] || []}]\n";
     $Hooks[$depth] = undef;
     replace_run $Hooks[$depth - 1];
 }
@@ -84,14 +79,11 @@ sub clear {
 sub at_runtime (&) {
     my ($cv) = @_;
 
-    local $" = "][";
-    
     USE_FILTER and compiling_string_eval() and croak
         "Can't use at_runtime from a string eval";
 
     my $depth = count_BEGINs()
         or croak "You must call at_runtime at compile time";
-    warn "DEPTH: [$depth]\n";
 
     my $hk;
     unless ($hk = $Hooks[$depth]) {
@@ -102,7 +94,6 @@ sub at_runtime (&) {
             \@hooks, 
             subname "run", sub { $_->() for @hooks } 
         ];
-        warn "ALLOC: [@{$hk}]\n";
         replace_run $hk;
 
         # This must be all on one line, so we don't mess up perl's idea
@@ -111,7 +102,6 @@ sub at_runtime (&) {
             "BEGIN{B::Hooks::AtRuntime::clear($depth)}");
     }
 
-    warn "PUSH: [@$hk]\n";
     push @{$$hk[0]}, $cv;
 }
 
