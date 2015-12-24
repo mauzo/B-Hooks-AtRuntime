@@ -43,6 +43,22 @@ use B::Hooks::AtRuntime;
     is_deeply \@record, [1..4], "multiple BEGINs";
 }
 
+SKIP: {
+    skip "No eval{} with USE_FILTER", 1 if B::Hooks::AtRuntime::USE_FILTER;
+
+    my @record;
+    push @record, 4;
+    BEGIN {
+        push @record, 1;
+        at_runtime { push @record, 5 };
+        eval q{ BEGIN { at_runtime { push @record, 2 } } };
+        push @record, 3;
+    }
+    push @record, 6;
+
+    is_deeply \@record, [1..6], "multiple simultaneous BEGINs";
+}
+
 sub call_ar {
     my ($cb) = @_;
     at_runtime { $cb->() };
