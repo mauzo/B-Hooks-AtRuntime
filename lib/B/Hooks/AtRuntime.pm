@@ -62,12 +62,12 @@ sub replace_run {
 
     # By deleting the stash entry we ensure the only ref to the glob is
     # through the optree it was compiled into. This means that if that
-    # optree is ever freed, the glob will disappear along with @hooks
-    # and anything closed over by the user's callbacks.
-    delete $B::Hooks::AtRuntime::{run};
+    # optree is ever freed, the glob will disappear along with anything
+    # closed over by the user's callbacks.
+    delete $B::Hooks::AtRuntime::{hooks};
 
     no strict "refs";
-    $new and *{"run"} = $new->[1];
+    $new and *{"hooks"} = $new;
 }
 
 sub clear {
@@ -90,19 +90,16 @@ sub at_runtime (&) {
         # Close over an array of callbacks so we don't need to keep
         # stuffing text into the buffer.
         my @hooks;
-        $hk = $Hooks[$depth] = [ 
-            \@hooks, 
-            subname "run", sub { $_->() for @hooks } 
-        ];
+        $hk = $Hooks[$depth] = \@hooks;
         replace_run $hk;
 
         # This must be all on one line, so we don't mess up perl's idea
         # of the current line number.
-        lex_stuff("B::Hooks::AtRuntime::run();" .
+        lex_stuff(q{$_->() for @B::Hooks::AtRuntime::hooks;} .
             "BEGIN{B::Hooks::AtRuntime::clear($depth)}");
     }
 
-    push @{$$hk[0]}, $cv;
+    push @$hk, $cv;
 }
 
 1;
