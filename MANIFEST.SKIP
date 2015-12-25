@@ -1,1 +1,3 @@
-^MYMETA.yml$
+.git
+Makefile
+MANIFEST.SKIP

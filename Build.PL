@@ -17,9 +17,10 @@ Module::Build->new(
     },
     requires            => {
         perl                => "5.008001",
-        Exporter            => "5.57",
+        "Exporter::Tiny"    => 0,
         "Sub::Name"         => "0.05",
         "Filter::Util::Call"    => "0",
+        "parent"            => 0,
     },
 
     meta_merge          => {
