@@ -1,6 +1,6 @@
 package t::D;
 
-use B::Hooks::AtRuntime;
+use B::Hooks::AtRuntime qw/at_runtime after_runtime/;
 #use Scalar::Util "weaken";
 #use Devel::FindRef;
 #use Devel::Peek;
@@ -16,7 +16,7 @@ sub import {
     my $d = t::D->new($_[1]);
 #    push @All, \$d;
 #    weaken $All[-1];
-    at_runtime { $d };
+    $_[2] ? after_runtime { $d } : at_runtime { $d };
 }
 
 #sub dump_all { 
