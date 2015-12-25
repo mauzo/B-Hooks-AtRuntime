@@ -103,13 +103,13 @@ sub find_hooks {
 sub at_runtime (&) {
     my ($cv) = @_;
     my $hk = find_hooks;
-    push @$hk, $cv;
+    push @$hk, subname scalar(caller) . "::(at_runtime)", $cv;
 }
 
 sub after_runtime (&) {
     my ($cv) = @_;
     my $hk = find_hooks;
-    push @$hk, \$cv;
+    push @$hk, \subname scalar(caller) . "::(after_runtime)", $cv;
 }
 
 1;
