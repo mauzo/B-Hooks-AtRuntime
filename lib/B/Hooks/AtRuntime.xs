@@ -39,6 +39,17 @@ MY_caller_cx(pTHX_ I32 count, const PERL_CONTEXT **dbcxp)
 
 #endif
 
+void
+call_after (pTHX_ void *p)
+{
+    dSP;
+    SV  *cv = (SV*)p;
+
+    PUSHMARK(SP);
+    call_sv(cv, G_VOID|G_DISCARD);
+    SvREFCNT_dec(cv);
+}
+
 MODULE = B::Hooks::AtRuntime  PACKAGE = B::Hooks::AtRuntime
 
 #ifdef lex_stuff_sv
@@ -113,3 +124,34 @@ remaining_text ()
         }
     OUTPUT:
         RETVAL
+
+void
+run (...)
+    PREINIT:
+        dORIGMARK;
+        SV      *sv;
+        I32     i = 0;
+    CODE:
+        LEAVE; /* hmm hmm hmm */
+
+        while (i++ < items) {
+            sv = *(MARK + i);
+
+            if (!SvROK(sv))
+                Perl_croak(aTHX_ "Not a reference");
+            sv = SvRV(sv);
+
+            if (SvROK(sv)) {
+                sv = SvRV(sv);
+                SvREFCNT_inc(sv);
+                SAVEDESTRUCTOR_X(call_after, sv);
+            }
+            else {
+                PUSHMARK(SP); PUTBACK;
+                call_sv(sv, G_VOID|G_DISCARD);
+                MSPAGAIN;
+
+            }
+        }
+
+        ENTER;

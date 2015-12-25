@@ -4,17 +4,17 @@ use warnings;
 use strict;
 
 use XSLoader;
-use Exporter        "import";
 use Sub::Name       "subname";
 use Carp;
+
+use parent "Exporter::Tiny";
+our @EXPORT     = qw/at_runtime/;
+our @EXPORT_OK  = qw/at_runtime after_runtime lex_stuff/;
 
 BEGIN {
     our $VERSION = "1";
     XSLoader::load __PACKAGE__, $VERSION;
 }
-
-our @EXPORT = "at_runtime";
-our @EXPORT_OK = qw/at_runtime lex_stuff/;
 
 use constant USE_FILTER =>
     defined $ENV{PERL_B_HOOKS_ATRUNTIME} 
@@ -57,7 +57,7 @@ if (USE_FILTER) {
 
 my @Hooks;
 
-sub replace_run {
+sub replace_hooks {
     my ($new) = @_;
 
     # By deleting the stash entry we ensure the only ref to the glob is
@@ -73,12 +73,10 @@ sub replace_run {
 sub clear {
     my ($depth) = @_;
     $Hooks[$depth] = undef;
-    replace_run $Hooks[$depth - 1];
+    replace_hooks $Hooks[$depth - 1];
 }
 
-sub at_runtime (&) {
-    my ($cv) = @_;
-
+sub find_hooks {
     USE_FILTER and compiling_string_eval() and croak
         "Can't use at_runtime from a string eval";
 
@@ -91,15 +89,27 @@ sub at_runtime (&) {
         # stuffing text into the buffer.
         my @hooks;
         $hk = $Hooks[$depth] = \@hooks;
-        replace_run $hk;
+        replace_hooks $hk;
 
         # This must be all on one line, so we don't mess up perl's idea
         # of the current line number.
-        lex_stuff(q{$_->() for @B::Hooks::AtRuntime::hooks;} .
+        lex_stuff(q{B::Hooks::AtRuntime::run(@B::Hooks::AtRuntime::hooks);} .
             "BEGIN{B::Hooks::AtRuntime::clear($depth)}");
     }
 
+    return $hk;
+}
+
+sub at_runtime (&) {
+    my ($cv) = @_;
+    my $hk = find_hooks;
     push @$hk, $cv;
+}
+
+sub after_runtime (&) {
+    my ($cv) = @_;
+    my $hk = find_hooks;
+    push @$hk, \$cv;
 }
 
 1;
