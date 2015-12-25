@@ -14,6 +14,7 @@ my $dt = \&Test::More::done_testing;
 require "t/basic.t";
 require "t/timing.t";
 require "t/destroy.t";
+require "t/scope.t";
 require "t/stuff.t";
 
 $dt->();
