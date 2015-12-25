@@ -4,7 +4,7 @@
       "Ben Morrow <ben@morrow.me.uk>"
    ],
    "dynamic_config" : 1,
-   "generated_by" : "Module::Build version 0.38, CPAN::Meta::Converter version 2.112621",
+   "generated_by" : "Module::Build version 0.4214",
    "license" : [
       "bsd"
    ],
@@ -16,7 +16,7 @@
    "prereqs" : {
       "build" : {
          "requires" : {
-            "ExtUtils::CBuilder" : 0,
+            "ExtUtils::CBuilder" : "0",
             "Test::Exception" : "0.31",
             "Test::Exports" : "1",
             "Test::More" : "0.65",
@@ -30,9 +30,10 @@
       },
       "runtime" : {
          "requires" : {
-            "Exporter" : "5.57",
-            "Filter::Util::Call" : 0,
+            "Exporter::Tiny" : "0",
+            "Filter::Util::Call" : "0",
             "Sub::Name" : "0.05",
+            "parent" : "0",
             "perl" : "5.008001"
          }
       }
@@ -40,7 +41,7 @@
    "provides" : {
       "B::Hooks::AtRuntime" : {
          "file" : "lib/B/Hooks/AtRuntime.pm",
-         "version" : "1"
+         "version" : "2"
       }
    },
    "release_status" : "stable",
@@ -55,5 +56,5 @@
          "url" : "http://github.com/mauzo/B-Hooks-AtRuntime"
       }
    },
-   "version" : "1"
+   "version" : "2"
 }
