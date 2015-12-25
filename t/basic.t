@@ -150,4 +150,24 @@ sub call_ar {
                                 "a_r not reevaluated in sub";
 }
 
+{
+    package t::Caller;
+    use B::Hooks::AtRuntime;
+    my @record;
+
+    sub check_caller {
+        BEGIN { at_runtime {
+            my $i = 0;
+            while (my $p = caller $i++) {
+                push @record, $p;
+            }
+        } }
+    }
+
+    package main;
+    t::Caller::check_caller();
+    is_deeply \@record, [qw/t::Caller main/],
+                                "a_r does not add an extra scope";
+}
+
 done_testing;
