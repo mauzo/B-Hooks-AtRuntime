@@ -61,7 +61,7 @@ count_BEGINs ()
         const CV *cxcv;
     CODE:
         RETVAL = 0;
-        while (cx = caller_cx(c++, NULL)) {
+        while ((cx = caller_cx(c++, NULL))) {
             if (CxTYPE(cx) == CXt_SUB   &&
                 (cxcv = cx->blk_sub.cv) &&
                 CvSPECIAL(cxcv)         &&
@@ -80,7 +80,7 @@ compiling_string_eval ()
         const CV *cxcv;
     CODE:
         RETVAL = 0;
-        while (cx = caller_cx(c++, NULL)) {
+        while ((cx = caller_cx(c++, NULL))) {
             if (CxTYPE(cx) == CXt_SUB   &&
                 (cxcv = cx->blk_sub.cv) &&
                 CvSPECIAL(cxcv)         &&
