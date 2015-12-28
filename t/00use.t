@@ -31,6 +31,6 @@ import_ok $BHAR, [-all],        "-all import OK";
 is_import @all, $BHAR,          "-all import succeeds";
 
 BAIL_OUT "Module will not load."
-    if grep !$_, Test::More->builder->summary;
+    if !Test::More->builder->is_passing;
 
 done_testing;
