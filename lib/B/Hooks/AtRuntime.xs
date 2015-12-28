@@ -2,42 +2,10 @@
 #include <perl.h>
 #include <XSUB.h>
 
+#define NEED_caller_cx
 #define NEED_PL_parser
 #define DPPP_PL_parser_NO_DUMMY
 #include "ppport.h"
-
-#ifndef caller_cx
-#define caller_cx(c, p)         MY_caller_cx(aTHX_ c, p)
-
-/* Since we're only looking for BEGINs, we can skip most of the
- * subtleties of the real caller_cx and not worry about returning a
- * whole lot of extra frames that aren't subs.
- */
-static const PERL_CONTEXT *
-MY_caller_cx(pTHX_ I32 count, const PERL_CONTEXT **dbcxp)
-{
-    register I32 cxix = cxstack_ix;
-    register const PERL_CONTEXT *ccstack = cxstack;
-    const PERL_SI *top_si = PL_curstackinfo;
-
-    for (;;) {
-	/* we may be in a higher stacklevel, so dig down deeper */
-	while (cxix < 0 && top_si->si_type != PERLSI_MAIN) {
-	    top_si = top_si->si_prev;
-	    ccstack = top_si->si_cxstack;
-	    cxix = top_si->si_cxix;
-	}
-	if (cxix < 0)
-	    return NULL;
-	if (!count--)
-	    break;
-	cxix = cxix - 1;
-    }
-
-    return &ccstack[cxix];
-}
-
-#endif
 
 void
 call_after (pTHX_ void *p)
