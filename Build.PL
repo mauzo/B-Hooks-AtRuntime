@@ -10,7 +10,7 @@ Module::Build->new(
         "Module::Build"     => "0.38",
     },
     build_requires      => {
-        "Test::More"        => "0.65",
+        "Test::More"        => "1.001002",
         "Test::Exception"   => "0.31",
         "Test::Warn"        => "0.22",
         "Test::Exports"     => "1",
