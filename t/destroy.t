@@ -130,7 +130,7 @@ for my $wh (0, 1) {
 
         {
             local $TODO = "anon subs pin their parents (core bug, I think)"
-                unless $wh;
+                if !$wh || $] < 5.008004;
             ok grep($_ eq "anonsub", @::D),
                 "$cl in anon sub freed when surrounding scope freed";
         }
