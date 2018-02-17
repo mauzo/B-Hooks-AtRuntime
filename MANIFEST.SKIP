@@ -1,3 +1,6 @@
 .git
+_build
 Makefile
 MANIFEST.SKIP
+^MYMETA\.yml$
+^MYMETA\.json$
