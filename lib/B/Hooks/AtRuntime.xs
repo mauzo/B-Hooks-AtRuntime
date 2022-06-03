@@ -37,12 +37,13 @@ count_BEGINs ()
     PREINIT:
         I32 c = 0;
         const PERL_CONTEXT *cx;
+        const PERL_CONTEXT *dbcx;
         const CV *cxcv;
     CODE:
         RETVAL = 0;
-        while ((cx = caller_cx(c++, NULL))) {
-            if (CxTYPE(cx) == CXt_SUB   &&
-                (cxcv = cx->blk_sub.cv) &&
+        while ((cx = caller_cx(c++, &dbcx))) {
+            if (CxTYPE(dbcx) == CXt_SUB   &&
+                (cxcv = dbcx->blk_sub.cv) &&
                 CvSPECIAL(cxcv)         &&
                 strEQ(GvNAME(CvGV(cxcv)), "BEGIN")
             )
@@ -56,17 +57,18 @@ compiling_string_eval ()
     PREINIT:
         I32 c = 0;
         const PERL_CONTEXT *cx;
+        const PERL_CONTEXT *dbcx;
         const CV *cxcv;
     CODE:
         RETVAL = 0;
-        while ((cx = caller_cx(c++, NULL))) {
-            if (CxTYPE(cx) == CXt_SUB   &&
-                (cxcv = cx->blk_sub.cv) &&
+        while ((cx = caller_cx(c++, &dbcx))) {
+            if (CxTYPE(dbcx) == CXt_SUB   &&
+                (cxcv = dbcx->blk_sub.cv) &&
                 CvSPECIAL(cxcv)         &&
                 strEQ(GvNAME(CvGV(cxcv)), "BEGIN")
             ) {
-                cx = caller_cx(c + 1, NULL);
-                if (cx && CxREALEVAL(cx))
+                cx = caller_cx(c + 1, &dbcx);
+                if (cx && CxREALEVAL(dbcx))
                     RETVAL = 1;
                 break;
             }
