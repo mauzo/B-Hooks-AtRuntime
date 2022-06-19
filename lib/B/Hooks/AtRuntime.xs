@@ -128,7 +128,12 @@ run (...)
         SV      *sv;
         I32     i = 0;
     CODE:
-        LEAVE; /* hmm hmm hmm */
+        /* This is the magic step... This leaves the scope that
+         * surrounds the call to run(), putting us back in the outer
+         * scope we were called from. This is what makes after_runtime
+         * subs run at the end of the inserted-into scope, rather than
+         * when run() finishes. */
+        LEAVE;
 
         while (i++ < items) {
             sv = *(MARK + i);
@@ -137,11 +142,13 @@ run (...)
                 Perl_croak(aTHX_ "Not a reference");
             sv = SvRV(sv);
 
+            /* We have a ref to a ref; this is after_runtime. */
             if (SvROK(sv)) {
                 sv = SvRV(sv);
                 SvREFCNT_inc(sv);
                 SAVEDESTRUCTOR_X(call_after, sv);
             }
+            /* This is at_runtime. */
             else {
                 PUSHMARK(SP); PUTBACK;
                 call_sv(sv, G_VOID|G_DISCARD);
@@ -150,4 +157,6 @@ run (...)
             }
         }
 
+        /* Re-enter the scope level we were supposed to be in, or perl
+         * will get confused. */
         ENTER;
