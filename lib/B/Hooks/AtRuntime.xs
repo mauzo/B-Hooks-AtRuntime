@@ -18,6 +18,20 @@ call_after (pTHX_ void *p)
     SvREFCNT_dec(cv);
 }
 
+void show_cx (pTHX_ const char *name, const PERL_CONTEXT *cx)
+{
+    int is_sub = CxTYPE(cx) == CXt_SUB;
+    CV *cxcv = is_sub ? cx->blk_sub.cv : NULL;
+    int is_special = is_sub ? CvSPECIAL(cxcv) : 0;
+    const char *cvname = is_sub ? GvNAME(CvGV(cxcv)) : "<none>";
+
+    Perl_warn(aTHX_ "%s: sub %s, special %s, name %s\n",
+        name,
+        (is_sub ? "yes" : "no"),
+        (is_special ? "yes" : "no"),
+        cvname);
+}
+
 MODULE = B::Hooks::AtRuntime  PACKAGE = B::Hooks::AtRuntime
 
 #ifdef lex_stuff_sv
@@ -41,7 +55,14 @@ count_BEGINs ()
         const CV *cxcv;
     CODE:
         RETVAL = 0;
+
         while ((cx = caller_cx(c++, &dbcx))) {
+
+            /*
+            show_cx(aTHX_ "cx", cx);
+            show_cx(aTHX_ "dbcx", dbcx);
+            */
+
             if (CxTYPE(dbcx) == CXt_SUB   &&
                 (cxcv = dbcx->blk_sub.cv) &&
                 CvSPECIAL(cxcv)         &&
@@ -49,6 +70,11 @@ count_BEGINs ()
             )
                 RETVAL++;
         }
+
+        /*
+        Perl_warn(aTHX_ "count_BEGINS: frames %i, BEGINs %lu\n",
+            c, RETVAL);
+        */
     OUTPUT:
         RETVAL
 
