@@ -12,7 +12,7 @@ our @EXPORT     = qw/at_runtime/;
 our @EXPORT_OK  = qw/at_runtime after_runtime lex_stuff/;
 
 BEGIN {
-    our $VERSION = "6";
+    our $VERSION = "7";
     XSLoader::load __PACKAGE__, $VERSION;
 }
 
